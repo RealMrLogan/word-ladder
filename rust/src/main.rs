@@ -1,10 +1,14 @@
 use std::io;
-use std::io::Write; // bring flush() inot scope
+use std::io::Write; // bring flush() into scope
 
 fn main() {
     println!("Welcome to the Word Ladder!\n");
     let first_word = get_word_from_user("Please enter the first word: ");
     let last_word = get_word_from_user("Please enter the last word: ");
+    // this measures bytes, not number of characters?
+    if first_word.chars().count() == last_word.chars().count() {
+        println!("The two words are the same!");
+    }
 }
 
 fn get_word_from_user(message: &str) -> std::string::String {
