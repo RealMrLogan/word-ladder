@@ -9,8 +9,10 @@ fn main() {
     println!("Welcome to the Word Ladder!\n");
     let first_word = get_word_from_user("Please enter the first word: ");
     let last_word = get_word_from_user("Please enter the last word: ");
+    // TODO: what if the two words are the same
     if first_word.chars().count() != last_word.chars().count() {
         println!("The two words are NOT the same length!");
+        return;
     }
 
     let lexicon = fs::read_to_string("../lexicon.txt").expect("Unable to read file");
@@ -60,32 +62,32 @@ fn find_word_ladder(
     let mut first_vec: Vec<String> = Vec::new();
     first_vec.push(first_word);
     word_ladders.push_back(first_vec);
-    let mut found_last_word = false;
+
     // we want to add one or none words to each ladder for each loop in the VecDeque
+    let mut found_last_word = false;
     while !found_last_word {
-        for word_ladder in &mut word_ladders {
+        for i in 0..word_ladders.len() {
             // this has something to do with borrowing... I don't quite understand it yet
-            let temp = &word_ladder.clone();
+            let temp = word_ladders[i].clone();
             let last_ladder_word = temp.last().unwrap();
 
             for word in lexicon_value {
-                if is_one_letter_different(&last_ladder_word, &word) && !is_already_in_ladder(word_ladder.clone(), &word) {
-                    &word_ladder.push(word.to_string());
+                if is_one_letter_different(&last_ladder_word, &word) && !is_already_in_ladder(word_ladders[i].clone(), &word) {
+                    let mut temp = word_ladders[i].clone();
+                    temp.push(word.to_string());
+                    word_ladders.push_back(temp);
                     if word == &last_word {
                         // we found the end!
                         found_last_word = true;
+                        break;
                     }
-                    let word_ladder_copy = word_ladder.clone();
-                    // word_ladders.push_back(word_ladder_copy);
-                    // TODO: add more Vecs to the VecDeque
                     // TODO: what to do if there is no word ladder
-                    break;
                 }
             }
         }
     }
 
-    return find_shortest_word_ladder(word_ladders);
+    return find_shortest_word_ladder(word_ladders, &last_word);
 }
 
 /**
@@ -119,29 +121,13 @@ fn is_already_in_ladder(word_ladder: Vec<String>, word_to_find: &str) -> bool {
     return false;
 }
 
-fn find_shortest_word_ladder(mut word_ladders: VecDeque<Vec<String>>) -> Vec<String> {
-    println!("VecDeque: {:?}", word_ladders);
-    let mut shortest_ladder = word_ladders.pop_front().unwrap();
+fn find_shortest_word_ladder(word_ladders: VecDeque<Vec<String>>, last_word: &str) -> Vec<String> {
+    let mut shortest_ladder: Vec<String> = Vec::new();
+    shortest_ladder.resize(100, "".to_string()); // arbitrary placeholder
     for word_ladder in word_ladders {
-        println!("Comparing {} to {}", word_ladder.len(), shortest_ladder.len());
-        if word_ladder.len() < shortest_ladder.len() {
+        if word_ladder.len() < shortest_ladder.len() && word_ladder.last().unwrap() == last_word {
             shortest_ladder = word_ladder;
         }
     }
     return shortest_ladder;
 }
-
-// *get the start word;
-// *get end word;
-// *make sure both words are the same length
-// *get num chars of word
-// *read in lexicon into a map wit hthe num chars as a key and array of words as value
-// *start ladder; create new queue (stack?)
-// *write function to determine if there is a one letter difference between two words
-// *if there is only one letter difference, add that word to the stack
-// *copy stack
-// put that stack into a vector
-// continue for next word until we reach the end of the lexicon
-// start over with each ladder in vector until the end word is found in one stack
-// we found the shortest ladder
-// display ladder to user
